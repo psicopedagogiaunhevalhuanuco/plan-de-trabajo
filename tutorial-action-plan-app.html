@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Generador de Plan de Acción Tutorial</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0; /* Eliminar los márgenes por defecto del body */
+            padding: 0; /* Eliminar los paddings por defecto del body */
+            background-color: #f5f5f5;
+            min-height: 100vh; /* Esto es importante para que el body ocupe todo el alto de la pantalla */
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .container {
+            background-color: white;
+            padding: 25px;
+            border-radius: 0px; /*  Elimina los bordes en todos los dispositivos */
+            box-shadow: none; /* Eliminar la sombra en todos los dispositivos */
+            width: 100%;  /* Ocupar todo el ancho disponible */
+            min-height: 100vh; /* Ocupar todo el alto disponible */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start; /* Alinea los elementos al inicio del contenedor */
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        input[type="text"], 
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .response-container {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .loading {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Estilos para la tabla de tutorías */
+        .tabla-tutoria {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        
+        .tabla-tutoria, .tabla-tutoria th, .tabla-tutoria td {
+            border: 1px solid #ddd;
+        }
+        
+        .tabla-tutoria th, .tabla-tutoria td {
+            padding: 8px;
+            text-align: center;
+        }
+        
+        .tabla-tutoria th {
+            background-color: #f2f2f2;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+        
+        .seccion-titulo {
+            background-color: #3498db;
+            color: white;
+            text-align: center;
+            font-weight: bold;
+            padding: 5px;
+        }
+        
+        .hover-fila:hover {
+            background-color: #f5f5f5;
+        }
+        
+        header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px;
+            background-color: #1e293b;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .app-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .app-logo {
+            background-color: #3498db;
+            color: white;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .app-title {
+            margin: 0;
+            font-size: 28px;
+        }
+        
+        .feature-badge {
+            display: inline-block;
+            background-color: #27ae60;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .tabla-titulo {
+            background-color: #1e293b;
+            color: white;
+            text-align: center;
+            font-weight: bold;
+            padding: 10px;
+        }
+        /*  inicio codigo para alinear los checkbox */
+        .checkbox-container {
+            display: flex; /* Usar flexbox para alinear los elementos horizontalmente */
+            flex-wrap: wrap; /* Permitir que los elementos se envuelvan a la siguiente línea si no caben */
+            gap: 10px; /* Espacio entre los elementos */
+            justify-content: flex-start; /* Alineación horizontal */
+        }
+
+        .checkbox-item {
+            display: flex; /* Alinear el checkbox y la etiqueta dentro del item */
+            align-items: center; /* Centrar verticalmente el checkbox y la etiqueta */
+            gap: 5px; /* Espacio entre el checkbox y la etiqueta */
+            min-width: 80px; /* Agregamos un ancho minimo a los items*/
+
+        }
+                /* Estilos para dispositivos móviles */
+                @media (max-width: 768px) {
+            body {
+                padding: 0px; /* Reduce el padding en móviles */
+                min-height: 100vh; /* Asegura que el body ocupe todo el alto */
+                width: 100%; /* Asegura que el body ocupe todo el ancho */
+            }
+
+            .container {
+                padding: 15px; /* Reduce el padding del contenedor en móviles */
+                border-radius: 0; /* Elimina los bordes redondeados en móviles */
+                box-shadow: none; /* Elimina las sombras en móviles */
+                width: 100%; /* Asegura que el container ocupe todo el ancho */
+                min-height: 100vh; /* Asegura que el container ocupe toda la altura */
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+            }
+
+            .form-group {
+                margin-bottom: 15px; /* Reduce el margen inferior */
+            }
+
+            .app-title {
+                font-size: 20px; /* Reduce el tamaño del título */
+            }
+
+            input[type="text"],
+            input[type="number"],
+            select {
+                font-size: 14px; /* Reduce el tamaño de la fuente */
+                padding: 8px;/* Reduce el tamaño del padding */
+            }
+
+            button {
+                font-size: 14px; /* Reduce el tamaño de la fuente del botón */
+                padding: 10px 15px;/* Reduce el tamaño del padding */
+            }
+
+            .response-container {
+                padding: 15px;
+            }
+            
+            header{
+                margin-bottom: 20px;
+            }
+            .checkbox-container {
+                display: flex; /* Convierte el contenedor en flexbox */
+                flex-wrap: wrap; /* Permite que los elementos se envuelvan */
+                justify-content: center; /* Centra los elementos horizontalmente */
+            }
+        
+            .checkbox-item {
+                margin: 5px; /* Agrega un margen alrededor de cada checkbox */
+                display: flex;
+                align-items: center;
+                width: 45%; /* Establece un ancho para moviles*/
+                min-width: 0px; /* eliminamos el ancho minimo para los moviles*/
+            }
+        
+            .checkbox-item input[type="checkbox"] {
+                margin-right: 5px; /* Agrega un margen a la derecha del checkbox */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="app-header">
+                <div class="app-logo">P</div>
+                <h1 class="app-title">Sistema Generador de Plan de Acción Tutorial</h1>
+            </div>
+            <span class="feature-badge">ACTIVO</span>
+        </header>
+        
+        <form id="planForm">
+            <div class="form-group">
+                <label for="docenteTutor">Nombre(s) del Docente Tutor:</label>
+                <input type="text" id="docenteTutor" required placeholder="Ej. Dr. Juan Pérez Gómez, Mg. María López Sánchez">
+            </div>
+            
+            <div class="form-group">
+                <label for="anioEstudio">Año de Estudios (Semestre):</label>
+                <select id="anioEstudio" required>
+                    <option value="">Seleccione un año/semestre</option>
+                    <option value="1-2">Primer año (1-2 semestre)</option>
+                    <option value="3-4">Segundo año (3-4 semestre)</option>
+                    <option value="5-6">Tercer año (5-6 semestre)</option>
+                    <option value="7-8">Cuarto año (7-8 semestre)</option>
+                    <option value="9-10">Quinto año (9-10 semestre)</option>
+                    <option value="11-12">Sexto año (11-12 semestre)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="facultad">Facultad:</label>
+                <select id="facultad" required>
+                    <option value="">Seleccione una Facultad</option>
+                    <option value="Facultad de Ciencias Administrativas y Turismo">Ciencias Administrativas y Turismo</option>
+                    <option value="Facultad de Ciencias Sociales">Ciencias Sociales</option>
+                    <option value="Facultad de Ciencias Agrarias">Ciencias Agrarias</option>
+                    <option value="Facultad de Medicina">Medicina</option>
+                    <option value="Facultad de Economía">Economía</option>
+                    <option value="Facultad de Medicina Veterinaria y Zootecnia">Medicina Veterinaria y Zootecnia</option>
+                    <option value="Facultad de Psicología">Psicología</option></option>
+                    <option value="Facultad de Obstetricia">Obstetricia</option>
+                    <option value="Facultad de Ingeniería Industrial, de Sistemas y Mecatrónica">Ingeniería Industrial, de Sistemas y Mecatrónica</option>
+                    <option value="Facultad de Derecho y Ciencias Políticas">Derecho y Ciencias Políticas</option>
+                    <option value="Facultad de Ingeniería Civil y Arquitectura">Ingeniería Civil y Arquitectura</option>
+                    <option value="Facultad de Ciencias de la Educación">Ciencias de la Educación</option>
+                    <option value="Facultad de Ciencias Contables y Financieras">Ciencias Contables y Financieras</option>
+                    <option value="Facultad de Enfermería">Enfermería</option>
+                    <!-- Agrega más facultades aquí -->
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="carrera">Escuela Profesional:</label>
+                <select id="carrera" required>
+                    <option value="">Seleccione una Escuela Profesional</option>
+                    <option value="Carrera Profesional Ciencias Administrativas">Ciencias Administrativas</option>
+                    <option value="Carrera Profesional Turismo y Hotelería">Turismo y Hotelería</option>
+                    <option value="Carrera Profesional de Sociología">Sociología</option>
+                    <option value="Carrera Profesional Ciencias de la Comunicación Social">Ciencias de la Comunicación Social</option>
+                    <option value="Carrera Profesional Ingeniería Agronómica">Ingeniería Agronómica</option>
+                    <option value="Carrera Profesional Ingeniería Agroindustrial">Ingeniería Agroindustrial</option>
+                    <option value="Carrera Profesional Medicina Humana">Medicina Humana</option>
+                    <option value="Carrera Profesional Odontología">Odontología</option>
+                    <option value="Carrera Profesional de Economía">Economía</option>
+                    <option value="Carrera Profesional de Medicina Veterinaria y Zootecnia">Medicina Veterinaria y Zootecnia</option>
+                    <option value="Carrera Profesional de Psicología">Psicología</option>
+                    <option value="Carrera Profesional de Obstetricia">Obstetricia</option>
+                    <option value="Carrera Profesional de Ingeniería Industrial">Ingeniería Industrial</option>
+                    <option value="Carrera Profesional de Ingeniería de Sistemas">Ingeniería de Sistemas</option>
+                    <option value="Carrera Profesional de Derecho y Ciencias Políticas">Derecho y Ciencias Políticas"</option>
+                    <option value="Carrera Profesional de Ingeniería Civil">Ingeniería Civil</option>
+                    <option value="Carrera Profesional de Arquitectura">Arquitectura</option>
+                    <option value="Carrera Profesional de Biología, Química y Ciencias del Ambiente">Biología, Química y Ciencias del Ambiente</option>
+                    <option value="Carrera Profesional de Ciencias Histórico Sociales y Geográficas">Ciencias Histórico Sociales y Geográficas</option>
+                    <option value="Carrera Profesional de Educación Inicial">Educación Inicial</option>
+                    <option value="Carrera Profesional de Educación Primaria">Educación Primaria</option>
+                    <option value="Carrera Profesional de Educación Física">Educación Física</option>
+                    <option value="Carrera Profesional de Filosofía, Psicología y Ciencias Sociales">Filosofía, Psicología y Ciencias Sociales</option>
+                    <option value="Carrera Profesional de Lengua y Literatura">Lengua y Literatura</option>
+                    <option value="Carrera Profesional de Matemática y Física">Matemática y Física</option>
+                    <option value="Carrera Profesional de Ciencias Contables y Financieras">Ciencias Contables y Financieras</option>
+                    <option value="Carrera Profesional de Enfermería">Enfermería</option>
+                    <!-- Las opciones de carrera se agregarán aquí dinámicamente -->
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="metaPorcentaje">Meta porcentual a alcanzar (%):</label>
+                <input type="number" id="metaPorcentaje" min="1" max="100" value="90" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Seleccione los meses de trabajo:</label>
+                <div class="checkbox-container">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="mes-marzo" value="Marzo" checked>
+                        <label for="mes-marzo">Marzo</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="mes-abril" value="Abril" checked>
+                        <label for="mes-abril">Abril</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="mes-mayo" value="Mayo" checked>
+                        <label for="mes-mayo">Mayo</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="mes-junio" value="Junio" checked>
+                        <label for="mes-junio">Junio</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="mes-julio" value="Julio" checked>
+                        <label for="mes-julio">Julio</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="mes-agosto" value="Agosto" checked>
+                        <label for="mes-agosto">Agosto</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="mes-septiembre" value="Septiembre" checked>
+                        <label for="mes-septiembre">Septiembre</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="mes-octubre" value="Octubre" checked>
+                        <label for="mes-octubre">Octubre</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="mes-noviembre" value="Noviembre" checked>
+                        <label for="mes-noviembre">Noviembre</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="mes-diciembre" value="Diciembre" checked>
+                        <label for="mes-diciembre">Diciembre</label>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit">Generar Plan de Acción Tutorial</button>
+        </form>
+        
+        <div class="loading hidden" id="loading">
+            <div class="spinner"></div>
+            <p>Generando Plan de Acción Tutorial...</p>
+        </div>
+        
+        <div class="response-container hidden" id="responseContainer">
+            <h3>Plan de Acción Tutorial Generado:</h3>
+            <div id="response"></div>
+        </div>
+    </div>
+
+    <script type="importmap">
+        {
+          "imports": {
+            "@google/generative-ai": "https://esm.run/@google/generative-ai"
+          }
+        }
+    </script>
+    <script type="module">
+        import { GoogleGenerativeAI } from '@google/generative-ai';
+
+        // API Key de Google AI (reemplazar en producción)
+        const API_KEY = 'AIzaSyCkkFMdW8C7IJ7uSgR4oKLvGuf1ajxDUk0';
+        const genAI = new GoogleGenerativeAI(API_KEY);
+        
+        // Datos de facultades y carreras
+        const facultadesCarreras = {
+        "Facultad de Ciencias Administrativas y Turismo": ["Ciencias Administrativas", "Turismo y Hotelería"],
+        "Facultad de Ciencias Sociales": ["Sociología", "Ciencias de la Comunicación Social"],
+        "Facultad de Ciencias Agrarias": ["Ingeniería Agronómica", "Ingeniería Agroindustrial"],
+        "Facultad de Medicina": ["Medicina Humana", "Odontología"],
+        "Facultad de Economía": ["Economía"],
+        "Facultad de Medicina Veterinaria y Zootecnia": ["Medicina Veterinaria y Zootecnia"],
+        "Facultad de Psicología": ["Psicología"],
+        "Facultad de Obstetricia": ["Obstetricia"],
+        "Facultad de Ingeniería Industrial, de Sistemas y Mecatrónica": ["Ingeniería Industrial", "Ingeniería de Sistemas"],
+        "Facultad de Derecho y Ciencias Políticas": ["Derecho y Ciencias Políticas"],
+        "Facultad de Ingeniería Civil y Arquitectura": ["Ingeniería Civil", "Arquitectura"],
+        "Facultad de Ciencias de la Educación": ["Educación Inicial", "Educación Primaria", "Educación Física", "Filosofía, Psicología y Ciencias Sociales", "Lengua y Literatura", "Matemática y Física", "Biología, Química y Ciencias del Ambiente", "Ciencias Histórico Sociales y Geográficas"],
+        "Facultad de Ciencias Contables y Financieras": ["Ciencias Contables y Financieras"],
+        "Facultad de Enfermería": ["Enfermería"]
+            // Agrega más facultades y carreras aquí
+        };
+
+        // Actualizar opciones de carrera según la facultad seleccionada
+        function actualizarCarreras(facultadSeleccionada) {
+            const carreraSelect = document.getElementById("carrera");
+            carreraSelect.innerHTML = "<option value=''>Seleccione una Escuela Profesional</option>";
+
+            if (facultadSeleccionada && facultadesCarreras[facultadSeleccionada]) {
+                facultadesCarreras[facultadSeleccionada].forEach(carrera => {
+                    const option = document.createElement("option");
+                    option.value = carrera;
+                    option.text = carrera;
+                    carreraSelect.appendChild(option);
+                });
+            }
+        }
+
+        // Escuchar cambio en el select de facultad
+        document.getElementById("facultad").addEventListener("change", function() {
+            const facultadSeleccionada = this.value;
+            actualizarCarreras(facultadSeleccionada);
+        });
+        
+        document.getElementById('planForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Mostrar spinner de carga
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('responseContainer').classList.add('hidden');
+            
+            // Obtener datos del formulario
+            const docenteTutor = document.getElementById('docenteTutor').value;
+            const anioEstudio = document.getElementById('anioEstudio').value;
+            const facultad = document.getElementById('facultad').value;
+            const carrera = document.getElementById('carrera').value;
+            const metaPorcentaje = document.getElementById('metaPorcentaje').value;
+            const RecursosDidacticosIndividual = `
+            -	Ficha de tutoría individual 
+            -	Ficha de compromiso para superar el riesgo académico 
+            -	Ficha de derivación al servicio de psicopedagogía
+
+       `;
+            const RecursosDidacticosGrupal = `
+            -	Ficha de tutoría grupal
+            -	Aula
+            -	Computadora
+            -	Sala de docentes
+            -	Computadora
+            -	Escritorio 
+            -	Proyector multimedia
+            -	Materiales de oficina
+            -	Fotocopias 
+            -	Folletos
+       `;
+       const IndicadoresTutoriaIndividual = `
+            Los indicadores son los elementos visibles en la acción tutoríal y están ligados a las acciones concretas que miden el cumplimiento de la tutoría, como ejemplo se pueden ver:
+            -	Ficha de tutoría individual firmado
+            -	Fichas de compromiso para superar el riesgo académico firmados Asistencia
+            -	Ficha de derivación al servicio de psicopedagogía firmado por el psicólogo 
+            -   Registro, fichas y evidencia fotográficas de tutoría individual subidas al SGD (esto si o sí se se da)
+
+       `;
+       const IndicadoresTutoriaGrupal = `
+            Los indicadores son los elementos visibles en la acción tutoríal y están ligados a las acciones concretas que miden el cumplimiento de la tutoría, como ejemplo se pueden ver:
+            -	Ficha de tutoría grupal firmado por los tutorados
+            -	Registro, fichas y evidencia fotográficas de tutoría grupal subidas al SGD (esto si o sí se se da)
+       `;
+       const ActividadesTutoríaIndividual = `
+       - IDENTIFICACIÓN DE TUTORADOS Y REVISIÓN DE LA FICHA DIAGNÓSTICA (MARZO Y ABRIL)
+       `;
+       const ActividadesPsicoepdagogíaGrupal = `
+       - TALLER DE HABILDIADES PSICOPEDAGÓGICAS (MAYO Y SETIEMBRE)
+       - TALLER DE SOPORTE PSICOPEDAGÓGICO  (JUNIO Y OCTUBRE)
+       - TALLER DE PREVENCIÓN RDU (JULIO Y NOVIEMBRE)
+       - ENTREGA DE INFORME SEMESTRAL (AGOSTO)
+       - ENTREGA DE INFORME FINAL (DICIEMBRE)
+       `;
+            // Obtener meses seleccionados
+            const mesesSeleccionados = [];
+            document.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
+                mesesSeleccionados.push(checkbox.value);
+            });
+            
+            try {
+                // Configurar el modelo y generar contenido
+                const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-001" });
+                
+                let prompt = `Actúa como un especialista en tutorías universitarias y genera un Plan de Acción Tutorial completo para docentes tutores. 
+                
+                Datos:
+                - Docente tutor: ${docenteTutor}
+                - Año de estudios/semestre: ${anioEstudio}
+                - Facultad: ${facultad}
+                - Escuela profesional: ${carrera}
+                - Meta porcentual: ${metaPorcentaje}%
+                - Meses de trabajo: ${mesesSeleccionados.join(", ")}
+                - Recursos didácticos Tutoría individual: ${RecursosDidacticosIndividual}
+                - Indicadores tutoría individual: ${IndicadoresTutoriaIndividual}
+                - Indicadores tutoría grupal: ${IndicadoresTutoriaGrupal}
+                - Recursos didácticos Tutoría grupal: ${RecursosDidacticosGrupal}
+                - Actividades grupales de psicopedagogía: ${ActividadesPsicoepdagogíaGrupal}
+                - Actividades de tutoría individual: ${ActividadesTutoríaIndividual}
+
+                Instrucciones:
+                
+                Genera una tabla HTML con la clase "tabla-tutoria" con la ESTRUCTURA EXACTA que te indico. La tabla debe tener el formato siguiente:
+                
+                <table class="tabla-tutoria">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">ACTIVIDADES</th>
+                            <th rowspan="2">RECURSOS DIDÁCTICOS</th>
+                            <th rowspan="2">INDICADORES</th>
+                            <th rowspan="2">META</th>
+                            <th rowspan="2">RESPONSABLES</th>
+                            <th colspan="10">MESES DE TRABAJO</th>
+                        </tr>
+                        <tr>
+                            <th>MAR</th>
+                            <th>ABR</th>
+                            <th>MAY</th>
+                            <th>JUN</th>
+                            <th>JUL</th>
+                            <th>AGO</th>
+                            <th>SET</th>
+                            <th>OCT</th>
+                            <th>NOV</th>
+                            <th>DIC</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Sección Tutorías Individuales -->
+                        <tr class="seccion-titulo">
+                            <td colspan="15">TUTORIAS INDIVIDUALES</td>
+                        </tr>
+                        
+                        <!-- Secciones por nivel para tutorías individuales -->
+                        <!-- Los meses seleccionados deben marcarse con una X, los no seleccionados deben quedar en blanco -->
+                        
+                        <!-- Sección Tutorías Grupales -->
+                        <tr class="seccion-titulo">
+                            <td colspan="15">TUTORIAS GRUPALES</td>
+                        </tr>
+                        
+                        <!-- Secciones por nivel para tutorías grupales -->
+                        <!-- Los meses seleccionados deben marcarse con una X, los no seleccionados deben quedar en blanco -->
+                    </tbody>
+                </table>
+
+                Para el contenido de la tabla, incluye:
+                
+                1. Un título principal antes de la tabla: "CUADRO DE ACTIVIDADES DE DOCENTE TUTOR PARA EL PLAN DE ACCION TUTORIAL POR AÑO DE ESTUDIOS"
+                
+                2. Para cada sección principal (TUTORÍAS INDIVIDUALES y TUTORÍAS GRUPALES), crea tres categorías:
+                   - A nivel personal
+                   - A nivel académico
+                   - A nivel profesional
+                
+                3. Para cada categoría debes incluir:
+                   - ACTIVIDADES: Para grupales, se debe incluir toda las actividades de psicopedagogía grupal ${ActividadesPsicoepdagogíaGrupal} y como máxmo tres actividades adicioneales. Para la tutoría individual, se debe incluir toda las actividades de tutoría individual ${ActividadesTutoríaIndividual} y como máximo dos actividades adicionales.
+                   - RECURSOS DIDÁCTICOS: Estos son los recursos didácticos para la tutoría individual ${RecursosDidacticosIndividual}.
+                   - INDICADORES: Métricas de evaluación, considera ${IndicadoresTutoriaIndividual} para la tutoría individual. Condiera ${IndicadoresTutoriaGrupal} para la tutoría grupal.
+                   - META 100%: Coloca el porcentaje ingresado por el usuario (${metaPorcentaje}%)
+                   - RESPONSABLES: Coloca el nombre del docente tutor ingresado por el usuario. Para las ${ActividadesPsicoepdagogíaGrupal}, los responsbles son: Psicopedagogía y Docente Tutor.
+                   - MESES DE TRABAJO: Para cada mes (MAR, ABR, MAY, JUN, JUL, AGO, SET, OCT, NOV, DIC), coloca una "X" ÚNICAMENTE en los meses que fueron seleccionados por el usuario. Los meses no seleccionados deben quedar en blanco. 
+                   - Para las tutorías grupales, asegúrate de que no haya más de una "X" por mes en toda la sección de tutorías grupales. Si un mes ya tiene una tutoría grupal asignada, no asignes otra en ese mismo mes (respeta dejar en blanco los meses no seleccionados por el usuario).**
+                
+                4. Contenido específico según el año/semestre (${anioEstudio}):
+                   * Primeros semestres (1-2, 3-4): Enfatiza orientación, integración, adaptación al ambiente universitario, métodos de estudio, habilidades académicas, conocimiento del perfil de ingreso, orientación personal.
+                   * Semestres intermedios (5-6, 7-8): Fortalecimiento de hábitos y estrategias de estudio, toma de decisiones, identificación con la carrera profesional, expectativas del campo laboral, valores institucionales, programas de movilidad estudiantil.
+                   * Últimos semestres (9-10, 11-12): Orientación para prácticas preprofesionales, preparación para inserción laboral, técnicas de búsqueda de empleo, procesos de titulación, perfil de egreso, bolsa de empleo.
+                
+                IMPORTANTE: 
+                1. Usa la clase "hover-fila" para cada fila de datos.
+                2. No incluirse ninguna actividad en los messes de marzo, agosto y diciembre.
+                3. La celda META 100% debe contener siempre el valor de la meta porcentual ingresada por el usuario.
+                4. Sigue exactamente la estructura de la tabla proporcionada.
+                5. Incluye un título principal en un div con la clase "tabla-titulo" antes de la tabla.
+                6. Genera solo el HTML de la tabla con su título, no incluyas explicaciones adicionales.`;
+                
+                const result = await model.generateContent(prompt);
+                const response = await result.response;
+                let text = response.text();
+                
+                // Limpiar posibles etiquetas de código
+                text = text.replace(/```html/g, '').replace(/```/g, '').trim();
+                
+                // Mostrar la respuesta
+                document.getElementById('response').innerHTML = text;
+                document.getElementById('responseContainer').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('response').innerHTML = `<p>Error al generar el Plan de Acción Tutorial: ${error.message}. Por favor asegúrate de tener una API KEY válida.</p>`;
+                document.getElementById('responseContainer').classList.remove('hidden');
+            } finally {
+                // Ocultar spinner de carga
+                document.getElementById('loading').classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
