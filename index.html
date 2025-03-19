@@ -529,6 +529,7 @@
        - TALLER DE PREVENCIÓN RDU (JULIO Y NOVIEMBRE)
        - ENTREGA DE INFORME SEMESTRAL (AGOSTO)
        - ENTREGA DE INFORME FINAL (DICIEMBRE)
+
        `;
             // Obtener meses seleccionados
             const mesesSeleccionados = [];
@@ -538,7 +539,7 @@
             
             try {
                 // Configurar el modelo y generar contenido
-                const model = genAI.getGenerativeModel({ model: "gemini-2.0-pro-exp-02-05" });
+                const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
                 
                 let prompt = `Actúa como un especialista en tutorías universitarias y genera un Plan de Acción Tutorial completo para docentes tutores. 
                 
